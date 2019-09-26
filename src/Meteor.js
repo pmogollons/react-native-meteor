@@ -1,14 +1,15 @@
-import { NetInfo, Platform, View } from 'react-native';
-
-import reactMixin from 'react-mixin';
-import Trackr from 'trackr';
 import EJSON from 'ejson';
+import Trackr from 'trackr';
+import NetInfo from '@react-native-community/netinfo';
+import reactMixin from 'react-mixin';
+import { Platform, View } from 'react-native';
+
 import DDP from '../lib/ddp.js';
 import Random from '../lib/Random';
 
+import call from './Call';
 import Data from './Data';
 import { Collection } from './Collection';
-import call from './Call';
 
 import Mixin from './components/Mixin';
 import MeteorListView from './components/ListView';
