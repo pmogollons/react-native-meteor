@@ -2,7 +2,6 @@ import EJSON from 'ejson';
 import Trackr from 'trackr';
 import NetInfo from '@react-native-community/netinfo';
 import reactMixin from 'react-mixin';
-import { Platform, View } from 'react-native';
 
 import DDP from '../lib/ddp.js';
 import Random from '../lib/Random';
@@ -12,14 +11,7 @@ import Data from './Data';
 import { Collection } from './Collection';
 
 import Mixin from './components/Mixin';
-import MeteorListView from './components/ListView';
-import MeteorComplexListView from './components/ComplexListView';
-import createContainer from './components/createContainer';
 import withTracker from './components/ReactMeteorData';
-import composeWithTracker from './components/composeWithTracker';
-
-import FSCollection from './CollectionFS/FSCollection';
-import FSCollectionImagesPreloader from './CollectionFS/FSCollectionImagesPreloader';
 
 import ReactiveDict from './ReactiveDict';
 
@@ -27,21 +19,14 @@ import User from './user/User';
 import Accounts from './user/Accounts';
 
 module.exports = {
-  composeWithTracker,
   Accounts,
   Tracker: Trackr,
   EJSON,
-  MeteorListView,
-  MeteorComplexListView,
   ReactiveDict,
   Collection,
-  FSCollectionImagesPreloader:
-    Platform.OS == 'android' ? View : FSCollectionImagesPreloader,
   collection(name, options) {
     return new Collection(name, options);
   },
-  FSCollection,
-  createContainer,
   withTracker,
   getData() {
     return Data;
@@ -52,7 +37,7 @@ module.exports = {
   ...User,
   status() {
     return {
-      connected: Data.ddp ? Data.ddp.status == 'connected' : false,
+      connected: Data.ddp ? Data.ddp.status === 'connected' : false,
       status: Data.ddp ? Data.ddp.status : 'disconnected',
       //retryCount: 0
       //retryTime:
