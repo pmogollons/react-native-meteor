@@ -1,7 +1,6 @@
 import EJSON from 'ejson';
 import Trackr from 'trackr';
 import NetInfo from '@react-native-community/netinfo';
-import reactMixin from 'react-mixin';
 
 import DDP from '../lib/ddp.js';
 import Random from '../lib/Random';
@@ -10,7 +9,6 @@ import call from './Call';
 import Data from './Data';
 import { Collection } from './Collection';
 
-import Mixin from './components/Mixin';
 import withTracker from './components/ReactMeteorData';
 
 import ReactiveDict from './ReactiveDict';
@@ -30,9 +28,6 @@ module.exports = {
   withTracker,
   getData() {
     return Data;
-  },
-  connectMeteor(reactClass) {
-    return reactMixin.onClass(reactClass, Mixin);
   },
   ...User,
   status() {
