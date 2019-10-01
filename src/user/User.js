@@ -23,11 +23,17 @@ module.exports = {
     return this._isLoggingIn;
   },
   logout(callback) {
-    call('logout', err => {
-      this.handleLogout();
-      this.connect();
+    return new Promise((resolve, reject) => {
+      call('logout', error => {
+        this.handleLogout();
+        this.connect();
 
-      typeof callback == 'function' && callback(err);
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
     });
   },
   handleLogout() {
@@ -42,20 +48,24 @@ module.exports = {
     }
 
     this._startLoggingIn();
-    call(
-      'login',
-      {
+
+    return new Promise((resolve, reject) => {
+      const params = {
         user: selector,
         password: hashPassword(password),
-      },
-      (err, result) => {
+      };
+
+      call('login', params, (error, result) => {
         this._endLoggingIn();
+        this._handleLoginCallback(error, result);
 
-        this._handleLoginCallback(err, result);
-
-        typeof callback == 'function' && callback(err);
-      }
-    );
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
   },
   logoutOtherClients(callback = () => {}) {
     call('getNewToken', (err, res) => {
