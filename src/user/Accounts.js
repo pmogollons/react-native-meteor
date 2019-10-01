@@ -64,4 +64,7 @@ module.exports = {
   onLoginFailure(cb) {
     Data.on('onLoginFailure', cb);
   },
+  onLogout(cb) {
+    Data.on('onLogout', cb);
+  },
 };

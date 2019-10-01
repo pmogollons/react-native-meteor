@@ -25,12 +25,14 @@ module.exports = {
   logout(callback) {
     return new Promise((resolve, reject) => {
       call('logout', error => {
-        this.handleLogout();
-        this.connect();
-
         if (error) {
           reject(error);
         } else {
+          this.handleLogout();
+          this.connect();
+
+          Data.notify('onLogout');
+
           resolve();
         }
       });
