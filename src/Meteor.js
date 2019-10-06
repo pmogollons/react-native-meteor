@@ -7,14 +7,13 @@ import Random from '../lib/Random';
 
 import call from './Call';
 import Data from './Data';
-import { Collection } from './Collection';
-
-import withTracker from './components/ReactMeteorData';
-
 import ReactiveDict from './ReactiveDict';
+import {Collection} from './Collection';
 
 import User from './user/User';
 import Accounts from './user/Accounts';
+
+import withTracker from './components/ReactMeteorData';
 
 module.exports = {
   Accounts,
@@ -46,19 +45,27 @@ module.exports = {
     }
   },
   _subscriptionsRestart() {
-    for (var i in Data.subscriptions) {
+    for (const i in Data.subscriptions) {
       const sub = Data.subscriptions[i];
+
       Data.ddp.unsub(sub.subIdRemember);
       sub.subIdRemember = Data.ddp.sub(sub.name, sub.params);
     }
   },
   waitDdpConnected: Data.waitDdpConnected.bind(Data),
   reconnect() {
-    Data.ddp && Data.ddp.connect();
+    if (Data.ddp) {
+      Data.ddp.connect();
+    }
   },
   connect(endpoint, options) {
-    if (!endpoint) endpoint = Data._endpoint;
-    if (!options) options = Data._options;
+    if (!endpoint) {
+      endpoint = Data._endpoint;
+    }
+
+    if (!options) {
+      options = Data._options;
+    }
 
     Data._endpoint = endpoint;
     Data._options = options;
@@ -79,18 +86,22 @@ module.exports = {
       Data.notify('change');
 
       console.info('Connected to DDP server.');
+
       this._loadInitialUser().then(() => {
         this._subscriptionsRestart();
       });
     });
 
     let lastDisconnect = null;
+
     Data.ddp.on('disconnected', () => {
       Data.notify('change');
 
       console.info('Disconnected from DDP server.');
 
-      if (!Data.ddp.autoReconnect) return;
+      if (!Data.ddp.autoReconnect) {
+        return;
+      }
 
       if (!lastDisconnect || new Date() - lastDisconnect > 3000) {
         Data.ddp.connect();
@@ -103,6 +114,7 @@ module.exports = {
       if (!Data.db[message.collection]) {
         Data.db.addCollection(message.collection);
       }
+
       Data.db[message.collection].upsert({
         _id: message.id,
         ...message.fields,
@@ -111,69 +123,89 @@ module.exports = {
 
     Data.ddp.on('ready', message => {
       const idsMap = new Map();
-      for (var i in Data.subscriptions) {
+
+      for (const i in Data.subscriptions) {
         const sub = Data.subscriptions[i];
+
         idsMap.set(sub.subIdRemember, sub.id);
       }
-      for (var i in message.subs) {
+
+      for (const i in message.subs) {
         const subId = idsMap.get(message.subs[i]);
+
         if (subId) {
           const sub = Data.subscriptions[subId];
           sub.ready = true;
           sub.readyDeps.changed();
-          sub.readyCallback && sub.readyCallback();
+
+          if (sub.readyCallback) {
+            sub.readyCallback();
+          }
         }
       }
     });
 
     Data.ddp.on('changed', message => {
       const unset = {};
+
       if (message.cleared) {
         message.cleared.forEach(field => {
           unset[field] = null;
         });
       }
 
-      Data.db[message.collection] &&
+      if (Data.db[message.collection]) {
         Data.db[message.collection].upsert({
           _id: message.id,
           ...message.fields,
           ...unset,
         });
+      }
     });
 
     Data.ddp.on('removed', message => {
-      Data.db[message.collection] &&
+      if (Data.db[message.collection]) {
         Data.db[message.collection].del(message.id);
+      }
     });
+
     Data.ddp.on('result', message => {
-      const call = Data.calls.find(call => call.id == message.id);
-      if (typeof call.callback == 'function')
+      const call = Data.calls.find(call => call.id === message.id);
+
+      if (typeof call.callback == 'function') {
         call.callback(message.error, message.result);
-      Data.calls.splice(Data.calls.findIndex(call => call.id == message.id), 1);
+      }
+
+      Data.calls.splice(
+        Data.calls.findIndex(call => call.id === message.id),
+        1,
+      );
     });
 
     Data.ddp.on('nosub', message => {
-      for (var i in Data.subscriptions) {
+      for (const i in Data.subscriptions) {
         const sub = Data.subscriptions[i];
-        if (sub.subIdRemember == message.id) {
+
+        if (sub.subIdRemember === message.id) {
           console.warn('No subscription existing for', sub.name);
         }
       }
     });
   },
   subscribe(name) {
-    var params = Array.prototype.slice.call(arguments, 1);
-    var callbacks = {};
+    let callbacks = {};
+    const params = Array.prototype.slice.call(arguments, 1);
+
     if (params.length) {
-      var lastParam = params[params.length - 1];
+      const lastParam = params[params.length - 1];
+
       if (typeof lastParam == 'function') {
         callbacks.onReady = params.pop();
       } else if (
         lastParam &&
-        (typeof lastParam.onReady == 'function' ||
-          typeof lastParam.onError == 'function' ||
-          typeof lastParam.onStop == 'function')
+        (typeof lastParam.onReady === 'function' ||
+          typeof lastParam.onError === 'function' ||
+          typeof lastParam.onStop === 'function')
       ) {
         callbacks = params.pop();
       }
@@ -198,14 +230,22 @@ module.exports = {
     // being invalidated, we will require N matching subscribe calls to keep
     // them all active.
 
-    let existing = false;
-    for (var i in Data.subscriptions) {
+    let existing;
+
+    for (const i in Data.subscriptions) {
       const sub = Data.subscriptions[i];
-      if (sub.inactive && sub.name === name && EJSON.equals(sub.params, params))
+
+      if (
+        sub.inactive &&
+        sub.name === name &&
+        EJSON.equals(sub.params, params)
+      ) {
         existing = sub;
+      }
     }
 
     let id;
+
     if (existing) {
       id = existing.id;
       existing.inactive = false;
@@ -216,15 +256,17 @@ module.exports = {
         // an onReady callback inside an autorun; the semantics we provide is
         // that at the time the sub first becomes ready, we call the last
         // onReady callback provided, if any.)
-        if (!existing.ready) existing.readyCallback = callbacks.onReady;
+        if (!existing.ready) {
+          existing.readyCallback = callbacks.onReady;
+        }
       }
       if (callbacks.onStop) {
         existing.stopCallback = callbacks.onStop;
       }
     } else {
       // New sub! Generate an id, save it locally, and send message.
-
       id = Random.id();
+
       const subIdRemember = Data.ddp.sub(name, params);
 
       Data.subscriptions[id] = {
@@ -240,7 +282,10 @@ module.exports = {
         stop: function() {
           Data.ddp.unsub(this.subIdRemember);
           delete Data.subscriptions[this.id];
-          this.ready && this.readyDeps.changed();
+
+          if (this.ready) {
+            this.readyDeps.changed();
+          }
 
           if (callbacks.onStop) {
             callbacks.onStop();
@@ -250,15 +295,21 @@ module.exports = {
     }
 
     // return a handle to the application.
-    var handle = {
+    const handle = {
       stop: function() {
-        if (Data.subscriptions[id]) Data.subscriptions[id].stop();
+        if (Data.subscriptions[id]) {
+          Data.subscriptions[id].stop();
+        }
       },
       ready: function() {
-        if (!Data.subscriptions[id]) return false;
+        if (!Data.subscriptions[id]) {
+          return false;
+        }
 
-        var record = Data.subscriptions[id];
+        const record = Data.subscriptions[id];
+
         record.readyDeps.depend();
+
         return record.ready;
       },
       subscriptionId: id,
@@ -271,7 +322,7 @@ module.exports = {
       // as a change to mark the subscription "inactive" so that it can
       // be reused from the rerun.  If it isn't reused, it's killed from
       // an afterFlush.
-      Trackr.onInvalidate(function(c) {
+      Trackr.onInvalidate(function() {
         if (Data.subscriptions[id]) {
           Data.subscriptions[id].inactive = true;
         }
