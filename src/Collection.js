@@ -1,11 +1,10 @@
-import Tracker from 'trackr';
 import EJSON from 'ejson';
-import _ from 'underscore';
+import Tracker from 'trackr';
 
 import Data from './Data';
 import Random from '../lib/Random';
 import call from './Call';
-import { isPlainObject } from '../lib/utils.js';
+import {isPlainObject} from '../lib/utils.js';
 
 class Cursor {
   constructor(collection, docs) {
@@ -52,7 +51,7 @@ export class Collection {
 
     if (typeof selector == 'string') {
       if (options) {
-        docs = this._collection.findOne({ _id: selector }, options);
+        docs = this._collection.findOne({_id: selector}, options);
       } else {
         docs = this._collection.get(selector);
       }
@@ -91,7 +90,7 @@ export class Collection {
     if ('_id' in item) {
       if (!item._id || typeof item._id != 'string') {
         return callback(
-          'Meteor requires document _id fields to be non-empty strings'
+          'Meteor requires document _id fields to be non-empty strings',
         );
       }
       id = item._id;
@@ -133,10 +132,10 @@ export class Collection {
       });
 
     // change mini mongo for optimize UI changes
-    this._collection.upsert({ _id: id, ...modifier.$set });
+    this._collection.upsert({_id: id, ...modifier.$set});
 
     Data.waitDdpConnected(() => {
-      call(`/${this._name}/update`, { _id: id }, modifier, err => {
+      call(`/${this._name}/update`, {_id: id}, modifier, err => {
         if (err) {
           return callback(err);
         }
@@ -153,7 +152,7 @@ export class Collection {
       this._collection.del(element._id);
 
       Data.waitDdpConnected(() => {
-        call(`/${this._name}/remove`, { _id: id }, (err, res) => {
+        call(`/${this._name}/remove`, {_id: id}, (err, res) => {
           if (err) {
             this._collection.upsert(element);
             return callback(err);
@@ -174,18 +173,20 @@ export class Collection {
 
     if (!this._helpers) {
       this._helpers = function Document(doc) {
-        return _.extend(this, doc);
+        return Object.assign(this, doc);
       };
+
       this._transform = doc => {
         if (_transform) {
           doc = _transform(doc);
         }
+
         return new this._helpers(doc);
       };
     }
 
-    _.each(helpers, (helper, key) => {
-      this._helpers.prototype[key] = helper;
+    Object.keys(helpers).forEach(key => {
+      this._helpers.prototype[key] = helpers[key];
     });
   }
 }
@@ -208,7 +209,8 @@ function wrapTransform(transform) {
   if (transform.__wrappedTransform__) return transform;
 
   var wrapped = function(doc) {
-    if (!_.has(doc, '_id')) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (!doc.hasOwnProperty('_id')) {
       // XXX do we ever have a transform on the oplog's collection? because that
       // collection has no _id.
       throw new Error('can only transform documents with _id');
@@ -224,7 +226,8 @@ function wrapTransform(transform) {
       throw new Error('transform must return object');
     }
 
-    if (_.has(transformed, '_id')) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (transformed.hasOwnProperty('_id')) {
       if (!EJSON.equals(transformed._id, id)) {
         throw new Error("transformed document can't have different _id");
       }
