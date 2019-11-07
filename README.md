@@ -4,16 +4,13 @@
 
 Meteor-like methods for React Native.
 
-If you have questions, you can open a new issue in the repository or ask in the our Gitter chat:  
-https://gitter.im/react-native-meteor/Lobby
-
 ## What is it for ?
 
 The purpose of this library is :
 
-* To set up and maintain a ddp connection with a ddp server, freeing the developer from having to do it on their own.
-* Be fully compatible with react-native and help react-native developers.
-* **To match with [Meteor documentation](http://docs.meteor.com/) used with React.**
+- To set up and maintain a ddp connection with a ddp server, freeing the developer from having to do it on their own.
+- Be fully compatible with react-native and help react-native developers.
+- **To match with [Meteor documentation](http://docs.meteor.com/) used with React.**
 
 ## Install
 
@@ -31,41 +28,50 @@ npm i --save react-native-meteor
 
 ## Compatibility notes
 
-Since RN 0.26.0 you have to use ws or wss protocol to connect to your meteor server. http is not working on Android.
+Since RN 0.60+ the original package was not compatible, this repo makes some changes to fix that and remove some unused modules.
 
-It is recommended to always use the latest version of react-native-meteor compatible with your RN version:
+- Use netinfo and asyncstorage from its community packages
+- Removed FSCollection modules
+- Removed MeteorListView, MeteorComplexListView, createContainer, composeWithTracker, ReactMixin
+- Now Call, loginWithPassword and logout support promises
+- Added onLogout event
+- Updated deps and removed unused ones
+- Partially updated code to es6+
+- Method.call promise has a configurable timeout and checks for connection before making the call. (This improved error handling in our apps)
+- Dont clear connections on reconnect.
 
-* For RN > 0.49, use `react-native-meteor@latest`
-* For RN > 0.45, use `react-native-meteor@1.1.x`
-* For RN = 0.45, use `react-native-meteor@1.0.6`
-* For RN < 0.45, you can use version `react-native-meteor@1.0.3` in case or problems.
+## Future
+
+- We dont intend to support this package in the long run, it will be supported in the time we keep using it.
+- We might add the components and modules we use to handle grapher queries to this repo.
 
 ## Example usage
 
 ```javascript
-import React, { Component } from 'react';
-import { View, Text } from 'react-native';
-import Meteor, { withTracker, MeteorListView } from 'react-native-meteor';
+import React, {Component} from 'react';
+import Meteor, {withTracker} from 'react-native-meteor';
+import {View, Text, FlatList} from 'react-native';
 
 Meteor.connect('ws://192.168.X.X:3000/websocket'); //do this only once
 
 class App extends Component {
-  renderRow(todo) {
+  _renderItem(todo) {
     return <Text>{todo.title}</Text>;
   }
+
   render() {
-    const { settings, todosReady } = this.props;
+    const {settings, todosReady} = this.props;
 
     return (
       <View>
         <Text>{settings.title}</Text>
+
         {!todosReady && <Text>Not ready</Text>}
 
-        <MeteorListView
-          collection="todos"
-          selector={{ done: true }}
-          options={{ sort: { createdAt: -1 } }}
-          renderRow={this.renderRow}
+        <FlatList
+          data={this.props.data}
+          renderItem={this._renderItem}
+          keyExtractor={item => item._id}
         />
       </View>
     );
@@ -91,8 +97,8 @@ export default withTracker(params => {
 
 ## Author
 
-* Théo Mathieu ([@Mokto](https://github.com/Mokto)) from [inProgress](https://in-progress.io)
-* Nicolas Charpentier ([@charpeni](https://github.com/charpeni))
+- Théo Mathieu ([@Mokto](https://github.com/Mokto)) from [inProgress](https://in-progress.io)
+- Nicolas Charpentier ([@charpeni](https://github.com/charpeni))
 
 ![image](https://user-images.githubusercontent.com/7189823/40546483-68c5e734-5ffd-11e8-8dd4-bdd11d9fbc93.png)
 
