@@ -28,7 +28,7 @@ npm i --save react-native-meteor
 
 ## Compatibility notes
 
-Since RN 0.60+ the original package was not compatible, this repo makes some changes to fix that and remove some unused modules.
+Since RN 0.60+ the original package was not compatible, this repo makes some changes to fix that and:
 
 - Use netinfo and asyncstorage from its community packages
 - Removed FSCollection modules
@@ -50,11 +50,40 @@ Since RN 0.60+ the original package was not compatible, this repo makes some cha
 ```javascript
 import React, {Component} from 'react';
 import Meteor, {withTracker} from 'react-native-meteor';
-import {View, Text, FlatList} from 'react-native';
+import {View, Text, Alert, FlatList, TouchableOpacity} from 'react-native';
 
 Meteor.connect('ws://192.168.X.X:3000/websocket'); //do this only once
 
 class App extends Component {
+  state = {
+    isLoading: false,
+  };
+
+  _callMethod = async () => {
+    this.setState({isLoading: true});
+
+    try {
+      // Default timeout is 15,000 (15secs)
+      await Meteor.call('methodName', params, {timeout: 5000});
+    } catch (error) {
+      Alert.alert('There was an error!', error.reason);
+    } finally {
+      this.setState({isLoading: false});
+    }
+  };
+
+  _login = async () => {
+    this.setState({isLoading: true});
+
+    try {
+      await Meteor.loginWithPassword(email, password);
+    } catch (error) {
+      Alert.alert('There was an error!', error.reason);
+    } finally {
+      this.setState({isLoading: false});
+    }
+  };
+
   _renderItem(todo) {
     return <Text>{todo.title}</Text>;
   }
@@ -65,6 +94,14 @@ class App extends Component {
     return (
       <View>
         <Text>{settings.title}</Text>
+
+        <TouchableOpacity onPress={this._callMethod}>
+          <Text>{this.state.isLoading ? 'Loading...' : 'Do something'}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={this._login}>
+          <Text>{this.state.isLoading ? 'Logging in...' : 'Login'}</Text>
+        </TouchableOpacity>
 
         {!todosReady && <Text>Not ready</Text>}
 
