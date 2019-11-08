@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-community/async-storage';
 
-import Data from '../Data';
-import { hashPassword } from '../../lib/utils';
 import call from '../Call';
+import Data from '../Data';
+import {hashPassword} from '../../lib/utils';
 
 const TOKEN_KEY = 'reactnativemeteor_usertoken';
 
@@ -22,7 +22,7 @@ module.exports = {
   loggingIn() {
     return this._isLoggingIn;
   },
-  logout(callback) {
+  logout() {
     return new Promise((resolve, reject) => {
       call('logout', error => {
         if (error) {
@@ -43,10 +43,13 @@ module.exports = {
     Data._tokenIdSaved = null;
     this._userIdSaved = null;
   },
-  loginWithPassword(selector, password, callback) {
+  loginWithPassword(selector, password) {
     if (typeof selector === 'string') {
-      if (selector.indexOf('@') === -1) selector = { username: selector };
-      else selector = { email: selector };
+      if (selector.indexOf('@') === -1) {
+        selector = {username: selector};
+      } else {
+        selector = {email: selector};
+      }
     }
 
     this._startLoggingIn();
@@ -115,7 +118,7 @@ module.exports = {
     Data._tokenIdSaved = value;
     if (value !== null) {
       this._startLoggingIn();
-      call('login', { resume: value }, (err, result) => {
+      call('login', {resume: value}, (err, result) => {
         this._endLoggingIn();
         this._handleLoginCallback(err, result);
       });
@@ -127,7 +130,8 @@ module.exports = {
     return Data._tokenIdSaved;
   },
   async _loadInitialUser() {
-    var value = null;
+    let value = null;
+
     try {
       value = await AsyncStorage.getItem(TOKEN_KEY);
     } catch (error) {
