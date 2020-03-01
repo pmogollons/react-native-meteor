@@ -15,27 +15,3 @@ If running an android emulator you have to forward the port of your meteor app.
 ```shell
 $ adb reverse tcp:3000 tcp:3000
 ```
-
-# Installing decorators
-
-## With RN >= 0.16.0 (Babel 6)
-
-* `npm i --save-dev babel-plugin-transform-decorators-legacy babel-preset-react-native` in your project
-* Create a .babelrc file at the root of your project :
-
-```json
-{
-  "presets": ["react-native"],
-  "plugins": ["transform-decorators-legacy"]
-}
-```
-
-## With RN <0.16.0 (Babel 5)
-
-Use a .babelrc file at the root of your project that contains :
-
-```json
-{
-  "optional": ["es7.decorators"]
-}
-```
