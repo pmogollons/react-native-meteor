@@ -61,7 +61,7 @@ const ReactMeteorData = {
   },
 };
 
-export { ReactMeteorData };
+export {ReactMeteorData};
 
 class ReactComponent extends React.Component {}
 Object.assign(ReactComponent.prototype, ReactMeteorData);
@@ -76,7 +76,7 @@ export default function connect(options) {
     };
   }
 
-  const { getMeteorData, pure = true } = expandedOptions;
+  const {getMeteorData, pure = true} = expandedOptions;
 
   const BaseComponent = pure ? ReactPureComponent : ReactComponent;
   return WrappedComponent =>
@@ -84,6 +84,7 @@ export default function connect(options) {
       getMeteorData() {
         return getMeteorData(this.props);
       }
+
       render() {
         return <WrappedComponent {...this.props} {...this.data} />;
       }

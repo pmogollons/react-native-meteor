@@ -1,12 +1,12 @@
 import Data from '../Data';
 import call from '../Call';
 import User from './User';
-import { hashPassword } from '../../lib/utils';
+import {hashPassword} from '../../lib/utils';
 
 module.exports = {
   createUser(options, callback = () => {}) {
-    if (options.username) options.username = options.username;
-    if (options.email) options.email = options.email;
+    // if (options.username) options.username = options.username;
+    // if (options.email) options.email = options.email;
 
     // Replace password with the hashed password.
     options.password = hashPassword(options.password);
@@ -21,7 +21,7 @@ module.exports = {
     });
   },
   changePassword(oldPassword, newPassword, callback = () => {}) {
-    //TODO check Meteor.user() to prevent if not logged
+    // TODO: check Meteor.user() to prevent if not logged
 
     if (typeof newPassword != 'string' || !newPassword) {
       return callback('Password may not be empty');
@@ -31,9 +31,9 @@ module.exports = {
       'changePassword',
       oldPassword ? hashPassword(oldPassword) : null,
       hashPassword(newPassword),
-      (err, res) => {
+      err => {
         callback(err);
-      }
+      },
     );
   },
   forgotPassword(options, callback = () => {}) {

@@ -1,4 +1,5 @@
 import Trackr from 'trackr';
+
 import Data from '../Data';
 
 // A class to keep the state and utility methods needed to manage
@@ -56,7 +57,7 @@ class MeteorDataManager {
                   ' loop. To respond to Meteor data changing, consider making this component' +
                   ' a "wrapper component" that only fetches data and passes it in as props to' +
                   ' a child component. Then you can use `componentWillReceiveProps` in that' +
-                  ' child component.'
+                  ' child component.',
               );
             };
 

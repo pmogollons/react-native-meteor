@@ -26,15 +26,15 @@ module.exports = {
     return new Promise((resolve, reject) => {
       call('logout', error => {
         if (error) {
-          reject(error);
-        } else {
-          this.handleLogout();
-          this.connect();
-
-          Data.notify('onLogout');
-
-          resolve();
+          return reject(error);
         }
+
+        this.handleLogout();
+        this.connect();
+
+        Data.notify('onLogout');
+
+        resolve();
       });
     });
   },
@@ -44,17 +44,17 @@ module.exports = {
     this._userIdSaved = null;
   },
   loginWithPassword(selector, password) {
-    if (typeof selector === 'string') {
-      if (selector.indexOf('@') === -1) {
-        selector = {username: selector};
-      } else {
-        selector = {email: selector};
-      }
-    }
-
-    this._startLoggingIn();
-
     return new Promise((resolve, reject) => {
+      if (typeof selector === 'string') {
+        if (selector.indexOf('@') === -1) {
+          selector = {username: selector};
+        } else {
+          selector = {email: selector};
+        }
+      }
+
+      this._startLoggingIn();
+
       const params = {
         user: selector,
         password: hashPassword(password),
@@ -65,21 +65,29 @@ module.exports = {
         this._handleLoginCallback(error, result);
 
         if (error) {
-          reject(error);
-        } else {
-          resolve();
+          return reject(error);
         }
+
+        return resolve();
       });
     });
   },
-  logoutOtherClients(callback = () => {}) {
-    call('getNewToken', (err, res) => {
-      if (err) return callback(err);
+  logoutOtherClients() {
+    return new Promise((resolve, reject) => {
+      call('getNewToken', (error, res) => {
+        if (error) {
+          return reject(error);
+        }
 
-      this._handleLoginCallback(err, res);
+        this._handleLoginCallback(error, res);
 
-      call('removeOtherTokens', err => {
-        callback(err);
+        call('removeOtherTokens', error => {
+          if (error) {
+            return reject(error);
+          }
+
+          return resolve();
+        });
       });
     });
   },
@@ -90,7 +98,9 @@ module.exports = {
 
       this._handleLoginCallback(err, result);
 
-      typeof callback == 'function' && callback(err);
+      if (typeof callback == 'function') {
+        callback(err);
+      }
     });
   },
   _startLoggingIn() {
