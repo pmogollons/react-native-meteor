@@ -10,14 +10,14 @@ export default function(eventName, props, config = {}) {
     const id = Data.ddp.method(eventName, args);
     const callback = args.pop();
 
-    return Data.calls.push({id: id, callback});
+    return Data.calls.push({ id: id, callback });
   }
 
   let timeoutId;
 
   const callPromise = new Promise((resolve, reject) => {
     NetInfo.fetch()
-      .then(netStatus => {
+      .then((netStatus) => {
         if (!netStatus.isConnected) {
           return reject(
             new MeteorError('NO_CONNECTION', 'No estas conectado a internet'),
@@ -39,7 +39,7 @@ export default function(eventName, props, config = {}) {
           },
         });
       })
-      .catch(error => {
+      .catch((error) => {
         clearTimeout(timeoutId);
 
         reject(error);
@@ -48,13 +48,15 @@ export default function(eventName, props, config = {}) {
 
   let timeoutPromise = new Promise((resolve, reject) => {
     timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId);
+
       reject(
         new MeteorError(
           'TIMEOUT',
           'El servidor tomo mas de lo esperado en responder',
         ),
       );
-    }, config.timeout || 15 * 1000);
+    }, config.timeout || 90 * 1000);
   });
 
   return Promise.race([callPromise, timeoutPromise]);
