@@ -13,9 +13,7 @@ export default function(eventName, props, config = {}) {
     return Data.calls.push({ id: id, callback });
   }
 
-  let timeoutId;
-
-  const callPromise = new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     NetInfo.fetch()
       .then((netStatus) => {
         if (!netStatus.isConnected) {
@@ -29,8 +27,6 @@ export default function(eventName, props, config = {}) {
         Data.calls.push({
           id: id,
           callback(error, response) {
-            clearTimeout(timeoutId);
-
             if (error) {
               reject(error);
             } else {
@@ -40,24 +36,7 @@ export default function(eventName, props, config = {}) {
         });
       })
       .catch((error) => {
-        clearTimeout(timeoutId);
-
         reject(error);
       });
   });
-
-  let timeoutPromise = new Promise((resolve, reject) => {
-    timeoutId = setTimeout(() => {
-      clearTimeout(timeoutId);
-
-      reject(
-        new MeteorError(
-          'TIMEOUT',
-          'El servidor tomo mas de lo esperado en responder',
-        ),
-      );
-    }, config.timeout || 90 * 1000);
-  });
-
-  return Promise.race([callPromise, timeoutPromise]);
 }
